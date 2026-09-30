@@ -1,0 +1,25 @@
+# Build artifacts & executables
+restaurant
+restaurant.exe
+*.out
+*.o
+*.obj
+*.dSYM/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE & Editor settings
+.idea/
+.vscode/
+*.swp
+*~
+
+# Temporary, course materials & duplicate files
+cerinte/
+*.zip
+workplace.cpp
+README.txt
+*.log
