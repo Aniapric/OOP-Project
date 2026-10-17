@@ -10,14 +10,14 @@
 #include <stdexcept>
 using namespace std;
 
-//pt afisare float uri
+// format float with 2 decimal places
 string format2(float valoare) {
     string text = std::to_string(valoare);
-    // gaseste punctul si taie string-ul pastrand doar 2 cifre dupa el
+    // find decimal point and keep 2 digits
     return text.substr(0, text.find('.') + 3); 
 }
 
-//ierarhia de exceptii custom
+// custom exception hierarchy
 class RestaurantException : public std::exception {
     protected:
         string mesaj;
@@ -26,13 +26,13 @@ class RestaurantException : public std::exception {
 
         virtual ~RestaurantException() noexcept{};
         
-        //what() cu noexcept override
+        // what() with noexcept override
         const char* what() const noexcept override {
-            return mesaj.c_str(); // aceasta variabila mesaj va fi suprascrisa de clasele derivate 
+            return mesaj.c_str(); // message overridden by derived classes 
         }
 };
 
-//derivata 1: pt clasa masa
+// table exception
 class CapacitateMasaException : public RestaurantException {
     private:
         int capacitateMaxima;
@@ -46,7 +46,7 @@ class CapacitateMasaException : public RestaurantException {
         ~CapacitateMasaException() noexcept override {};
 };
 
-//derivata 2: pt clasa produs
+// product exception
 class ProdusInexistentException : public RestaurantException {
     private:
         string numeProdus;
@@ -59,7 +59,7 @@ class ProdusInexistentException : public RestaurantException {
         ~ProdusInexistentException() noexcept override{};
 };
 
-//derivata 3: pt valori gresite in general 
+// invalid value exception 
 class DateInvalideException : public RestaurantException {
     private:
         float valoareGresita;
@@ -72,7 +72,7 @@ class DateInvalideException : public RestaurantException {
         ~DateInvalideException() noexcept override{};
 };
 
-//derivata 4: pt persoane negasite 
+// person not found exception 
 class PersoanaNegasitaException : public RestaurantException {
     private:
         string numeCautat;
@@ -85,20 +85,20 @@ class PersoanaNegasitaException : public RestaurantException {
         ~PersoanaNegasitaException() noexcept override{}
 };
 
-//clasa template pt feedback ( stelute sau mesaje )
+// feedback template class (ratings or reviews)
 template <typename T, int LimitaMemorie>
 class RegistruFeedback {
 
     private:
 
-        vector<T> istoric; //poate sa fie ori de string-uri (mesaje) , ori de note (stelute)
+        vector<T> istoric; // vector of ratings or reviews
 
     public:
 
-        //constructor 
+        // constructor 
         RegistruFeedback(){};
 
-        //adauga feedback , gestioneaza memoria 
+        // add feedback and manage memory bounds 
         void adaugaFeedback(const T& feedback) {
             if(istoric.size() >= LimitaMemorie){
                 throw overflow_error("Registrul a atins limita maxima de memorie (" + to_string(LimitaMemorie) + ")!");
@@ -106,12 +106,12 @@ class RegistruFeedback {
             istoric.push_back(feedback);
         }
 
-        //getter istoric mesaje 
+        // getter for feedback history 
         const vector<T>& getIstoric() const {
             return istoric;
         }
 
-        // metoda template in clasa template , exemple de functii de conversie sunt in main
+        // template method inside template class
         template <typename U>
         void adaugaFeedbackConvertit(const U& valoare, T (*functieConversie)(U)) { 
             T valoareConvertita = functieConversie(valoare);
@@ -119,19 +119,19 @@ class RegistruFeedback {
         }
 };
 
-// functie de afisare a nr de intrati din registru
+// print total entries in register
 template <typename T, int N>
 void afiseazaStatusRegistru(const RegistruFeedback<T, N>& registru) {
     cout<<"Registrul curent contine "<<registru.getIstoric().size()<<" intrari (din maxim "<<N<<")."<<endl;
 }
 
-//template generic
+// generic template
 template <typename T>
 void genereazaRaport(const vector<T>& date) {
     cout<<"Raport generic: "<<date.size()<<" elemente inregistrate."<<endl;
 }
 
-//specializare template pt note face media notelor
+// template specialization for ratings - calculates average
 template <>
 inline void genereazaRaport<int>(const vector<int>& date) {
     if(date.empty()) {
@@ -146,7 +146,7 @@ inline void genereazaRaport<int>(const vector<int>& date) {
         <<" stele (din " << date.size()<<" recenzii)."<<endl;
 }
 
-//specializare template pt mesaje , face un raport concatenand textul
+// template specialization for reviews - generates text report
 template <>
 inline void genereazaRaport<std::string>(const vector<std::string>& date) {
     if(date.empty()) {
@@ -166,62 +166,61 @@ class IObject{
         const int id;
     public:
 
-        //constructor 
+        // constructor 
         IObject(): id(++generatorId){
             cout<<"Iobject - constructor apelat"<<endl;
         }
 
-        //destructor virtual ptc e clasa de baza la toate clasele
+        // virtual destructor for base class
         virtual ~IObject() noexcept{}
 
-        //getter id
+        // getter for id
         int getId() const {
             return this->id;
         }
 
-        //metoda virtuala, forteaza derivatele(toate clasele) sa o implementeze
+        // pure virtual method
         virtual std::string toString() const = 0;
 
-        //supraincarcarea operatorului ==
+        // equality operator overload
         bool operator==(const IObject& alt ) const noexcept{
             return id == alt.id;
         }
 
-        //operator << pt toate clasele, apeleaza toString polimorfic
+        // output operator, calls toString polymorphically
         friend ostream& operator<<(ostream& os, const IObject& obj){
-            return os<<obj.toString(); //apeleaza varianta suprascrisa la toString() din fiecare clasa
+            return os<<obj.toString(); // calls overridden toString()
         }
-};/*---------------------------------------------------------------------------------------------------------*/
+};
 int IObject::generatorId = 0;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class Logger {
 private:
     vector<string> istoricActiuni; 
 
-    //constructor privat (nu poate fi instantiat din exterior)
+    // private constructor
     Logger(){
         istoricActiuni.push_back("[Sistem] Logger-ul a fost initializat.");
     }
 
 public:
-    //implementare Meyers 
+    // Meyers singleton instance 
     static Logger& getInstance() {
         static Logger instanta;
         return instanta;
     }
 
-    //dezactivam copierea si atribuirea
+    // disable copy and assignment
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
-    //metoda pt a adauga o intrare in jurnal
+    // add log entry
     void log(const string& actiune) {
         istoricActiuni.push_back(actiune);
     }
 
-    //metoda pt afisarea jurnalului 
+    // print logs 
     void afiseazaJurnal() const {
         cout<<"JURNAL RESTAURANT "<<endl;
         for(const auto& intrare : istoricActiuni) {
@@ -229,7 +228,7 @@ public:
         }
     }
 };
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 class DataNastere{
     private:
@@ -238,32 +237,32 @@ class DataNastere{
         int an;
     
     public:
-        //constructor fara parametri 
+        // default constructor 
         DataNastere(): zi(1), luna(1), an(1920){
             cout<<"DataNastere - Constructor apelat"<<endl;
         }
 
-        //Constructor cu toti parametrii
+        // constructor with all parameters
         DataNastere(int zi, int luna, int an): zi(zi), luna(luna), an(an){
             cout<<"DataNastere - Constructor apelat"<<endl;
         }
 
-        //Constructro de copiere
+        // copy constructor
         DataNastere(const DataNastere& sursa): zi(sursa.zi), luna(sursa.luna), an(sursa.an){
             cout<<"DataNastere - Constructor de copiere apelat"<<endl;
         }
 
-        //Destructor
+        // destructor
         ~DataNastere() noexcept{
             cout<<"DataNastere - Destructor apelat"<<endl;
         }
 
-        //getter zi
+        // getter for day
         int getZi() const{
             return this->zi;
         }
 
-        //setter zi
+        // setter for day
         void setZi(int zi_nou){
             if(this->luna == 2 && zi_nou > 28){
                 throw DateInvalideException(zi_nou);
@@ -272,12 +271,12 @@ class DataNastere{
                 this->zi = zi_nou;
         }
 
-        //getter luna
+        // getter for month
         int getLuna() const{
             return this->luna;
         }
 
-        //setter luna
+        // setter for month
         void setLuna(int luna_nou){
             if(this->zi > 28 && luna_nou == 2){
                 throw DateInvalideException(luna_nou);
@@ -286,12 +285,12 @@ class DataNastere{
                 this->luna = luna_nou;
         }
 
-        //getter an
+        // getter for year
         int getAn() const{
             return this->an;
         }
 
-        //setter an
+        // setter for year
         void setAn(int an_nou){
             if(an_nou > 1900 && an_nou <= 2025){
                 this->an = an_nou;
@@ -302,7 +301,7 @@ class DataNastere{
             
         }
 
-        //operator atribuire 
+        // assignment operator 
         DataNastere& operator=(const DataNastere& sursa){
             if(this != &sursa){
                 if(sursa.luna == 2 && sursa.zi > 28){
@@ -326,38 +325,35 @@ class DataNastere{
     
         }
 
-        //operator friend iesire
+        // friend output operator
         friend ostream& operator<<(ostream& out, const DataNastere& data);
 
-};/*-----------------------------------------------------------------------------------------------------------*/
+};
 
-//operator iesire 
+// output operator 
 ostream& operator<<(ostream& out, const DataNastere& data){
     out<<"Ziua: "<<data.zi<<", "<<" luna: "<<data.luna<<", "<<" anul: "<<data.an<<endl;
     return out;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* Am ales map pentru ca e mult mai potrivit pentru un catalog de persoane. Putem gasi, adauga sau 
-sterge un angajat direct dupa ID in timp O(log N). Daca foloseam vector, 
-trebuia sa cautam cu un for prin tot array-ul (adica O(N)), deci map e mult mai rapid. */
+    // map chosen for person catalog: lookup, insert and delete by id in O(log N)
 
 class Persoana : public IObject{
 
-    private:// aceste atribute sunt private ptc sunt specifice gestiunii clasei Persoana
+    private:// private fields specific to Persoana management
         static std::map<int, Persoana*> personal; 
         
 
-    protected://folosim protected ca clasele derivate sa aiba acces direct la atribute, dar din exterior sunt inaccesibile.
+    protected:// protected fields for derived classes
         std:: string nume;
         char gen;
         long long cnp;
-        DataNastere dataNastere; //compunere has-a
+        DataNastere dataNastere; // composition
 
     public:
     
-        //constructor cu toti parametrii 
+        // constructor with all parameters 
         Persoana(const std::string& nume, const char gen, long long cnp, int zi, int luna, int an)
             :nume(nume), gen(gen), cnp(cnp), dataNastere(zi,luna,an) {
             cout<<"Persoana - constructor apelat"<<endl;
@@ -367,7 +363,7 @@ class Persoana : public IObject{
             }
         }
 
-        //constructor fara data nastere
+        // constructor without birth date
         Persoana(const std::string& nume, const char gen, long long cnp)
             :nume(nume), gen(gen), cnp(cnp),dataNastere(1,1,2000) {
             cout<<"Persoana - constructor apelat"<<endl;
@@ -377,7 +373,7 @@ class Persoana : public IObject{
             }
         }
 
-        //constructor cu nume si gen
+        // constructor with name and gender
         Persoana(const std::string& nume, const char gen)
             :nume(nume), gen(gen), cnp(0),dataNastere(1,1,2000) {
             cout<<"Persoana - constructor apelat"<<endl;
@@ -387,90 +383,90 @@ class Persoana : public IObject{
             }
         }
 
-        //constructor de copiere
+        // copy constructor
         Persoana(const Persoana& sursa)
             :nume(sursa.nume), gen(sursa.gen), cnp(sursa.cnp), dataNastere(sursa.dataNastere){
             cout<<"Persoana - constructor de copiere apelat"<<endl;
 
         }
 
-        //destructor virtual - O(log n) stergere
+        // virtual destructor - O(log N) deletion
         virtual ~Persoana() noexcept{
             cout<<"Persoana - destructor apelat"<<endl;
 
         }
 
 
-        //getter nume
+        // getter for name
         std::string getNume() const{
             return this->nume;
         }
 
-        //setter nume
+        // setter for name
         void setNume(const std::string& nume_nou){
             if(!nume_nou.empty() && nume_nou.size() > 1){
                 this->nume = nume_nou;
             }
         }
 
-        //getter gen
+        // getter for gender
         char getGen() const{
             return this->gen;
         }
 
-        //setter gen
+        // setter for gender
         void setGen(const char gen_nou){
             if(gen_nou == 'M' || gen_nou == 'F' || gen_nou == 'N'){
                 this->gen = gen_nou;
             }
         }
 
-        //getter cnp
+        // getter for cnp
         long long getCnp() const{
             return this->cnp;
         }
 
-        //setter cnp
+        // setter for cnp
         void setCnp(long long cnp_nou){
             if(cnp_nou > 0)
                 this->cnp = cnp_nou;
         }
 
-        //getter data nastere
+        // getter for birth date
         const DataNastere& getDataNastere() const{
             return this->dataNastere;
         }
 
-        //setter data nastere
+        // setter for birth date
         void setDataNastere(int zi_nou, int luna_nou, int an_nou){
             this->dataNastere.setZi(zi_nou);
             this->dataNastere.setLuna(luna_nou);
             this->dataNastere.setAn(an_nou);
         }
 
-        //getter static nr persoane
+        // getter for total persons count
         static int getNrPersoane() {
             return personal.size();
         }
 
-        //getter personal
+        // getter for staff catalog
         static const std::map<int, Persoana*>& getPersonal(){
             return personal;
         }
 
-         //Afisare personal , corpul metodei se afla dupa declararea clasei angajat 
+         // print staff catalog 
         static void afisarePersonal();
 
-        //Adauga in catalog (personal)
+        // add person to staff catalog
         void adaugaInPersonal() {
-            personal[this->getId()] = this; //daca id-ul exista , il suprascrie
+            personal[this->getId()] = this; // overwrites if id exists
         }
 
-        //Elimina persoana din personal , am implementat o dupa clasa angajat ca sa gestioneze si catalogul de angajati
+        // remove person from staff catalog
         static void eliminaPersoana(const std::string& numeCautat);
           
 
-        //Curata personal
+        // clear staff catalog
         static void curataPersonal(){
             for (auto const& [id, p] : personal) {
                 delete p; 
@@ -478,21 +474,16 @@ class Persoana : public IObject{
             personal.clear();
         }
 
-        //metoda virtuala calculeaza salariu, se schimba la fiecare clasa ( ai bonusuri in functie de rol)
+        // calculate salary based on role bonuses
         virtual float calculeazaSalariu() const = 0;
 
-        //metoda virtuala afiseaza rol ptc se schimba la fiecare clasa rolul + afiseaza variabile noi 
+        // display role and role-specific fields 
         virtual std::string afisareRol() const = 0;
 
-        /*modifica date specifice tipului real a unui angajat sau a administratorului
-        Folosim dynamic_cast pt a accesa metodele specifice fiecarui tip
-        Nu putem apela setSchimb(), setSpecializare() direct prin Persoana*. 
-        Fara dynamic_cast , compilatorul nu stie tipul real .
-        Dynamic_cast e mai sigur decat static cast ptc returneaza nullptr in caz de esec
-        */
-        static void modificaDate(); // implementarea este dupa declararea claselor din ierarhia de persoane
+        // modifies role-specific fields using dynamic_cast
+        static void modificaDate(); // implemented after person hierarchy declarations
 
-        //metoda toString()
+        // toString method
         std::string toString() const override{
             std::ostringstream out;
             out<<"ID Persoana: "<<std::to_string(this->getId())<<endl
@@ -503,9 +494,9 @@ class Persoana : public IObject{
             return out.str();
         }
 
-        //Operatorul de atribuire
+        // assignment operator
         Persoana& operator=(const Persoana& sursa){
-            if( this != &sursa){ //Verificam sa nu facem auto-atribuire
+            if( this != &sursa){ // self-assignment check
 
                 this->nume = sursa.nume;
                 this->gen = sursa.gen;
@@ -515,17 +506,16 @@ class Persoana : public IObject{
 
             return *this;
         }
-        //operator de creare sau intrare nu avem pentru ca este clasa abstracta fara instantiere 
+        // abstract class, no input operator 
 
 };
 std::map<int, Persoana*> Persoana::personal;
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class Angajat : public Persoana{
 
-    protected:// ca clasa Ospatar si Bucatar sa aiba acces la ele
+    protected:// protected fields for derived classes
         float salariu;
         int nrBonusuri;
         float* istoricBonusuri;
@@ -534,7 +524,7 @@ class Angajat : public Persoana{
     
     public:
 
-        //Constructor fara parametri
+        // default constructor
         Angajat()
              : Persoana("N/A", 'N'),salariu(0), nrBonusuri(0) {
 
@@ -542,7 +532,7 @@ class Angajat : public Persoana{
             this->istoricBonusuri = nullptr;
 
         }
-        //Constructor cu toti parametrii
+        // constructor with all parameters
         Angajat(const std::string& nume, char gen, long long cnp, int zi, int luna, int an, float salariu)
             : Persoana(nume,gen,cnp,zi,luna,an), salariu(salariu), nrBonusuri(0){
 
@@ -551,7 +541,7 @@ class Angajat : public Persoana{
 
         }
         
-        //Constructor cu toti parametrii fara data nastere
+        // constructor without birth date
         Angajat(const std::string& nume, char gen, long long cnp, float salariu )
             : Persoana(nume,gen,cnp), salariu(salariu), nrBonusuri(0){
 
@@ -560,7 +550,7 @@ class Angajat : public Persoana{
 
         }
 
-        //Constructor cu nume si gen, ( salariul nu este inca stabilit de angajator :) ) 
+        // constructor with name and gender 
         Angajat(const std::string& nume, char gen)
             : Persoana(nume,gen), salariu(0), nrBonusuri(0){
 
@@ -568,7 +558,7 @@ class Angajat : public Persoana{
             this->istoricBonusuri = nullptr;
         }
 
-        //Constructor cu nume, gen si salariu
+        // constructor with name, gender and salary
         Angajat(const std::string& nume, char gen, float salariu)
             : Persoana(nume,gen), salariu(salariu), nrBonusuri(0){
 
@@ -576,7 +566,7 @@ class Angajat : public Persoana{
             this->istoricBonusuri = nullptr;
         }
 
-        //Constructor de copiere 
+        // copy constructor 
         Angajat(const Angajat& sursa)
             : Persoana(sursa), salariu(sursa.salariu), nrBonusuri(sursa.nrBonusuri){
 
@@ -592,7 +582,7 @@ class Angajat : public Persoana{
             }
         }
 
-        //Destructor
+        // destructor
         virtual ~Angajat() noexcept{
 
             cout<<"Angajat - destructor apelat"<<endl;
@@ -604,30 +594,30 @@ class Angajat : public Persoana{
         }
 
 
-        //Getter salariu
+        // getter for salary
         float getSalariu() const{
             return this->salariu;
         }
 
-        //Setter salariu
+        // setter for salary
         void setSalariu(float salariu_nou){
             if(salariu_nou > 0)
                 this->salariu = salariu_nou;
         }
 
-        //Getter static
+        // getter for static count
         static int getNrAngajati(){
             return catalogAngajati.size();
         }
 
-        //getter nrBonusuri
+        // getter for bonus count
         int getNrBonusuri() const{
             return this->nrBonusuri;
         }
 
-        //setter nrBonusuri nu avem ca nu are logica sa avem
+        // bonus count is read-only
 
-        //getter istoric bonusuri
+        // getter for bonus history
         void afiseazaIstoricBonusuri(){
             if(this->istoricBonusuri != nullptr && this->nrBonusuri > 0){
                 cout<<"Istoric bonusuri pentru: "<<this->getNume()<<" :"<<endl;
@@ -643,7 +633,7 @@ class Angajat : public Persoana{
             }
         }
         
-        //Afisarea istoric bonusuri dupa nume
+        // display bonus history by name
         static void afiseazaIstoricBonusuriNume(const std::string& numeCautat){
             if(numeCautat.empty() || catalogAngajati.empty()){
                 throw RestaurantException("Eroare Catalog: Date invalide sau catalogul de angajati este gol!"); 
@@ -660,7 +650,7 @@ class Angajat : public Persoana{
                 throw PersoanaNegasitaException(numeCautat);
         }
 
-        //Create-  CRUD, pt meniu , pentru creare interactiva
+        // interactive creation for menu
         static void create(){
             std::string buffer;
             long long cnp_nou;
@@ -680,21 +670,21 @@ class Angajat : public Persoana{
             cout<<"Anul: "<<endl; cin>>an_nou;
             cout<<"Salariu: "; cin>>sal_nou;
 
-            Angajat* nou = new Angajat(buffer, gen_nou, cnp_nou, zi_noua, luna_noua, an_nou, sal_nou );//cream noul obiect 
-            nou->adaugaInCatalog(); // adaugam in meniu doar obiectele cu new
-            nou->adaugaInPersonal();// adaugam in catalog personal
+            Angajat* nou = new Angajat(buffer, gen_nou, cnp_nou, zi_noua, luna_noua, an_nou, sal_nou );// create new object 
+            nou->adaugaInCatalog(); // add dynamic object to catalog
+            nou->adaugaInPersonal();// add to staff catalog
             cout<<"Angajat inregistrat cu succes!"<<endl;
             Logger::getInstance().log("S-a adaugat angajatul " + buffer + " cu ID " + 
                                   to_string(nou->getId()) + " in catalogul de angajati si de personal.");
         }
 
-        //Adauga angajati in catalog
+        // add employee to catalog
         void adaugaInCatalog() {
             catalogAngajati[this->getId()] = this;
         }
 
 
-        //metoda care doar sterge din map-ul privat (o fol in elimina persoana)
+        // remove from private map
         static void stergeDinCatalogSpecific(int idDeSters) {
             auto it = catalogAngajati.find(idDeSters);
             if (it != catalogAngajati.end()) {
@@ -702,7 +692,7 @@ class Angajat : public Persoana{
             }
         }
 
-        //Elimina angajat din catalog 
+        // remove employee from catalog 
         static void eliminaAngajat(const std::string& numeCautat){
             if(numeCautat.empty() || catalogAngajati.empty())
                 return;
@@ -716,20 +706,20 @@ class Angajat : public Persoana{
                 }
             }
             if(esteAngajat){
-                Persoana::eliminaPersoana(numeCautat);//Apelam functia din baza care face delete si il sterge din personal
+                Persoana::eliminaPersoana(numeCautat);// calls base function to delete and remove from personal
             }
             else{
                 throw PersoanaNegasitaException(numeCautat);
             }
         }
 
-        //Curata catalog
+        // clear catalog
         static void curataCatalog(){
-            // golim map-ul, dar nu dam delete. Persoana::curataPersonal se ocupa de delete.
+            // clear map; Persoana::curataPersonal handles deletion
             catalogAngajati.clear();
         }
 
-        //Acorda bonus
+        // grant bonus
         void acordaBonus(float suma){
             if(suma > 0){
                 this->salariu += suma;
@@ -747,7 +737,7 @@ class Angajat : public Persoana{
             }
         }
 
-        //Acorda bonus dupa nume
+        // grant bonus by name
         static void acordaBonusNume(const std::string& numeCautat, float suma){
             if(numeCautat.empty() || catalogAngajati.empty()){
                 throw RestaurantException("Eroare Catalog: Date invalide sau catalogul de angajati este gol!");
@@ -769,14 +759,14 @@ class Angajat : public Persoana{
         }
 
 
-        //Statistici salariati: afiseaza salariile angajatilor si media tuturor salariilor
+        // employee salary statistics and average
         static void afisareStatisticiCatalog() {
             if(catalogAngajati.empty()) {
                 throw RestaurantException("Eroare Catalog: catalogul de angajati este gol!");
             }
 
             float suma = 0;
-            // facem un vector temporar in care copiem doar pointerii (fara id)
+            // temporary vector of pointers
             std::vector<Angajat*> clasament;
             
             for(auto const& [id, a] : catalogAngajati) {
@@ -784,7 +774,7 @@ class Angajat : public Persoana{
                 suma += a->calculeazaSalariu();
             }
 
-            //am folosit sort cu functie lambda
+            // sort using lambda
             std::sort(clasament.begin(), clasament.end(), [](Angajat* a1, Angajat* a2) {
                 return a1->calculeazaSalariu() > a2->calculeazaSalariu(); 
             });
@@ -804,19 +794,19 @@ class Angajat : public Persoana{
             cout<<endl;
         }
 
-        //afisare rol metoda virtuala cu override , va contine functie + variabile noi 
+        // display role override 
         std::string afisareRol() const override{
             return "Angajat";  
             
         }
 
-        //implementare calculeaza salariu 
+        // calculate salary implementation 
         float calculeazaSalariu() const override {
             return this->salariu;
         }
 
 
-        //metoda toString() suprascrisa 
+        // overridden toString method 
         std::string toString() const override {
             std::ostringstream out;
             out<<Persoana::toString() 
@@ -837,9 +827,9 @@ class Angajat : public Persoana{
             return out.str();
         }
 
-        //Operatorul de atribuire
+        // assignment operator
         Angajat& operator=(const Angajat& sursa){
-            if( this != &sursa){ //Verificam sa nu facem auto-atribuire
+            if( this != &sursa){ // self-assignment check
 
                 Persoana::operator=(sursa);
                 this->salariu = sursa.salariu;
@@ -863,36 +853,36 @@ class Angajat : public Persoana{
             return *this;
         }
 
-        //Operator conversie bool
+        // bool conversion operator
         explicit operator bool() const{
                 return this->salariu > 3500;
             }
 
 
-        //Declaram operator intrare
+        // input operator declaration
         friend istream& operator>>(istream& in, Angajat& a);
 
-        //Operatori matematici
+        // arithmetic operators
         friend Angajat operator+(const Angajat& a, int cantitate);
         friend Angajat operator+(int cantitate, const Angajat& a);
         friend Angajat operator-(const Angajat& p, int cantitate);
         
-        //Operatori relationali
+        // comparison operators
         friend bool operator<(const Angajat& a1,const Angajat& a2);
         friend bool operator==(const Angajat& a1,const Angajat& a2);
 
-        //Operatori de incrementare
-        Angajat& operator++(); //Prefixat ++a
-        Angajat operator++(int); //Postfixat a++
-        Angajat& operator--(); //Prefixat --a
-        Angajat operator--(int); //Postfixat a--
+        // increment operators
+        Angajat& operator++(); // prefix increment
+        Angajat operator++(int); // postfix increment
+        Angajat& operator--(); // prefix decrement
+        Angajat operator--(int); // postfix decrement
 
-        //Operatorul index[]
+        // subscript operator
         char& operator[](int index);
 
-};/*------------------------------------------------------------------------*/
+};
 
-//Operator intrare
+// input operator
 istream& operator>>(istream& in, Angajat& a){
     cout<<"Nume angajat: ";
     std::string buffer;
@@ -923,7 +913,7 @@ istream& operator>>(istream& in, Angajat& a){
     return in;
 }
 
-//Operator adunare
+// addition operator
 Angajat operator+(const Angajat& a, int cantitate){
     Angajat copie = a;
     if(cantitate > 0)
@@ -932,12 +922,12 @@ Angajat operator+(const Angajat& a, int cantitate){
     return copie;
 }
 
-//Adunare comutativa
+// commutative addition
 Angajat operator+(int cantitate, const Angajat& a){
     return a + cantitate;
 }
 
-//Operator scadere 
+// subtraction operator 
 Angajat operator-(const Angajat& a, int cantitate){
     Angajat copie = a;
     if(copie.salariu >= cantitate)
@@ -947,37 +937,37 @@ Angajat operator-(const Angajat& a, int cantitate){
 
 }
 
-//Comparatie dupa salariu
+// salary comparison
 bool operator<(const Angajat& a, const Angajat& b){
     return a.salariu < b.salariu;
 }
 
-//Egalitate dupa salariu
+// salary equality
 bool operator==(const Angajat& a, const Angajat& b){
     return a.salariu == b.salariu;
 }
 
-//Operator incrementare prefixat ++ a
+// prefix increment
 Angajat& Angajat::operator++(){
     this->salariu += 100;
     return *this;
 }
 
-//Operator incrementare postfixat a++
+// postfix increment
 Angajat Angajat::operator++(int){
     Angajat copie = *this;
     this->salariu += 100;
     return copie;
 }
 
-//Operator decrementare prefixat --a
+// prefix decrement
 Angajat& Angajat::operator--(){
     if(this->salariu >= 100)
         this->salariu -= 100;
     return *this;
 }
 
-//Operator decrementare postfixat a--
+// postfix decrement
 Angajat Angajat::operator--(int){
     Angajat copie = *this;
     if(this->salariu >= 100)
@@ -985,7 +975,7 @@ Angajat Angajat::operator--(int){
     return copie;
 }
 
-//Operatorul index
+// subscript operator
 char& Angajat::operator[](int index) {
     if (!this->nume.empty() &&  index >= 0 && index < this->nume.size()) {
         return this->nume[index];
@@ -996,7 +986,7 @@ char& Angajat::operator[](int index) {
 
 std::map<int, Angajat*> Angajat::catalogAngajati;
 
-//Afisare personal (din clasa persoana )
+// print staff catalog
 void Persoana::afisarePersonal(){
     cout<<" Personal Restaurant:  ( "<<personal.size()<<" ) persoane"<<endl;
 
@@ -1005,7 +995,7 @@ void Persoana::afisarePersonal(){
         if(p != nullptr){
 
             cout<<index++<<". "<<endl;
-            // typeid  returneaza un obiect type_info. .name() ne da numele clasei.
+            // typeid provides type info name
             cout<<"[Sistem: Obiect identificat in memorie ca: "
             <<typeid(*p).name() << "]" << endl;
 
@@ -1015,14 +1005,14 @@ void Persoana::afisarePersonal(){
                 cout<<*ang<<endl;
             }
             else{
-                cout<<*p<<endl; //Administrator
+                cout<<*p<<endl; // administrator
             }
         }
         cout<<endl;
     }
 }
 
-//Elimina persoana din personal (din clasa persoana )
+// remove person from staff catalog
 void Persoana::eliminaPersoana(const std::string& numeCautat){
     if(numeCautat.empty() || personal.empty())
         return;
@@ -1030,7 +1020,7 @@ void Persoana::eliminaPersoana(const std::string& numeCautat){
     int idDeSters = -1;
     Persoana* deSters = nullptr;
 
-    //iteram prin dictionar
+    // iterate through map
     for( auto const& [id,p] : personal){
         if(p->nume == numeCautat){
             deSters = p;
@@ -1050,7 +1040,6 @@ void Persoana::eliminaPersoana(const std::string& numeCautat){
     }
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class Bucatar: public Angajat{
     private:
@@ -1059,13 +1048,13 @@ class Bucatar: public Angajat{
 
     public:
 
-        //constructor fara parametri
+        // default constructor
         Bucatar() : Angajat(), specialitate("N/A"),aniExperienta(0){
 
             cout<<"Bucatar - constructor apelat"<<endl;
         }
 
-        //constructor cu toti parametrii
+        // constructor with all parameters
         Bucatar(const std::string& nume, const char gen, long long cnp, int zi, int luna, int an, float salariu,
              const std::string& specialitate, int aniExperienta )
             : Angajat(nume, gen, cnp, zi, luna, an, salariu), specialitate(specialitate), aniExperienta(aniExperienta){
@@ -1076,7 +1065,7 @@ class Bucatar: public Angajat{
             }
         }
 
-        //constructro fara data nastere
+        // constructor without birth date
         Bucatar(const std::string& nume, const char gen, long long cnp, float salariu,
              const std::string& specialitate, int aniExperienta )
             : Angajat(nume, gen, cnp, salariu),specialitate(specialitate), aniExperienta(aniExperienta){
@@ -1087,7 +1076,7 @@ class Bucatar: public Angajat{
             }
         }
 
-        //constructro fara data nastere si cnp
+        // constructor without birth date and cnp
         Bucatar(const std::string& nume, const char gen,float salariu,
              const std::string& specialitate, int aniExperienta )
             : Angajat(nume, gen, salariu),specialitate(specialitate), aniExperienta(aniExperienta){
@@ -1098,7 +1087,7 @@ class Bucatar: public Angajat{
             }
         }
 
-        //constructro fara data nastere si fara cnp si fara ani experienta
+        // constructor without birth date, cnp and experience
         Bucatar(const std::string& nume, const char gen,float salariu,
              const std::string& specialitate )
             : Angajat(nume, gen, salariu),aniExperienta(0) {
@@ -1109,7 +1098,7 @@ class Bucatar: public Angajat{
             }
         }
 
-        //constructor doar cu nume gen si salariu 
+        // constructor with name, gender and salary 
         Bucatar(const std::string& nume, const char gen,float salariu)
             : Angajat(nume, gen, salariu),aniExperienta(0) {
 
@@ -1119,55 +1108,55 @@ class Bucatar: public Angajat{
     
         }
 
-        //constructor de copiere
+        // copy constructor
         Bucatar(const Bucatar& sursa)
             :Angajat(sursa),specialitate(sursa.specialitate), aniExperienta(sursa.aniExperienta){
 
             cout<<"Bucatar - constructor de copiere apelat"<<endl;
         }
 
-        //destructor
+        // destructor
         virtual ~Bucatar() noexcept{
             cout<<"Bucatar - destructor apelat"<<endl;
 
         }
 
-        //getter ani experienta
+        // getter for yeari experienta
         int getAniExperienta() const{
             return this->aniExperienta;
         }
 
-        //setter ani experienta
+        // setter for yeari experienta
         void setAniExperienta( int ani){
             if(ani >= 0)
                 this->aniExperienta = ani;
         }
 
-        //getter specializare
+        // getter for specialty
         std::string getSpecializare() const{
             return this->specialitate;
         }
 
-        //setter specializare
+        // setter for specialty
         void setSpecializare( const std::string& special){
             if(!special.empty()){
                 this->specialitate = special;
             }
         }
 
-        //afisare rol - metoda din clasa persoana
+        // display role
         std::string afisareRol() const override{
             return "Bucatar";
 
         }
 
-        //calculeaza salariu - metoda din clasa persoana , pt fiecare an exeprienta avem bonus 100
+        // calculate salary: 100 bonus per year of experience
         float calculeazaSalariu() const override{
             return this->salariu + (this->aniExperienta * 100.0f);
         }
 
 
-        //Create - interactiva
+        // interactive creation
         static void create(){
             std::string buffer;
             long long cnp_nou;
@@ -1191,19 +1180,19 @@ class Bucatar: public Angajat{
             cout<<"Specialitate: "; cin>>ws; getline(cin, spec);
             cout<<"Ani experienta: "; cin>>aniExp_noi;
         
-            Bucatar* nou = new Bucatar(buffer, gen_nou, cnp_nou, zi_noua, luna_noua, an_nou, sal_nou , spec, aniExp_noi);//cream noul obiect 
-            nou->adaugaInCatalog(); // adaugam in catalog angajati doar obiectele cu new
-            nou->adaugaInPersonal(); //adaugam in catalog de personal
+            Bucatar* nou = new Bucatar(buffer, gen_nou, cnp_nou, zi_noua, luna_noua, an_nou, sal_nou , spec, aniExp_noi);// create new object 
+            nou->adaugaInCatalog(); // add dynamic object to employee catalog
+            nou->adaugaInPersonal(); // add to staff catalog
             cout<<"Bucatar inregistrat cu succes!"<<endl;
             Logger::getInstance().log("S-a adaugat bucatarul " + buffer + " cu ID " + 
                                   to_string(nou->getId()) + " in catalogul de angajati si de personal.");
         }
 
-        //suprascrierea metodei toString() 
+        // overridden toString method 
         std::string toString() const override {
             std::ostringstream out;
             
-            // Chemam metoda din clasa de baza (care la randul ei cheama Persoana)
+            // call base class method
             out<<Angajat::toString()<<endl 
                 <<"Specializare: " << this->specialitate<<endl
                 <<"Ani experienta: " << std::to_string(this->aniExperienta)<<endl;
@@ -1211,7 +1200,7 @@ class Bucatar: public Angajat{
             return out.str();
         }
 
-         //operator atribuire
+         // assignment operator
         Bucatar& operator=(const Bucatar& sursa){
             if(this != &sursa){
                 Angajat::operator=(sursa);
@@ -1223,90 +1212,89 @@ class Bucatar: public Angajat{
 
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class Ospatar final : public Angajat{ // am folosit final pentru ca aceasta clasa nu poate fi extinsa ( nu ar fi logic sa avem alt tip de Ospatar)
+class Ospatar final : public Angajat{ // final: cannot be inherited
     private:
         int etaj;
         int schimb;
 
     public:
-        //constructor fara parametri
+        // default constructor
         Ospatar(): Angajat(), etaj(0), schimb(0){
             cout<<"Ospatar - constructor apelat"<<endl;
         }
 
-        //constructor cu toti parametrii
+        // constructor with all parameters
         Ospatar(const std::string& nume, const char gen, long long cnp, int zi, int luna, int an,
             float salariu , int etaj, int schimb)
             :Angajat(nume, gen, cnp, zi, luna, an, salariu), etaj(etaj), schimb(schimb){
             cout<<"Ospatar - constructor apelat"<<endl;
         }
 
-        //constructor fara data nastere
+        // constructor without birth date
         Ospatar(const std::string& nume, const char gen, long long cnp,
             float salariu , int etaj, int schimb)
             :Angajat(nume, gen, cnp, salariu), etaj(etaj), schimb(schimb){
             cout<<"Ospatar - constructor apelat"<<endl;
         }
 
-        //constructor fara data nastere si fara cnp
+        // constructor without birth date and cnp
         Ospatar(const std::string& nume, const char gen, float salariu , int etaj, int schimb)
             :Angajat(nume, gen,salariu), etaj(etaj), schimb(schimb){
             cout<<"Ospatar - constructor apelat"<<endl;
         }
 
-        //constructor doar cu nume gen si salariu
+        // constructor with name, gender and salary
         Ospatar(const std::string& nume, const char gen, float salariu )
             :Angajat(nume, gen,salariu), etaj(0), schimb(0){
             cout<<"Ospatar - constructor apelat"<<endl;
         }
 
-        //constructor de copiere
+        // copy constructor
         Ospatar(const Ospatar& sursa)
             :Angajat(sursa), etaj(sursa.etaj), schimb(sursa.schimb){
             cout<<"Ospatar - constructor de copiere apelat"<<endl;
         }
 
-        //destructor
+        // destructor
         virtual ~Ospatar() noexcept{
             cout<<"Ospatar - destructor apelat"<<endl;
         }
 
-        //getter etaj
+        // getter for floor
         int getEtaj() const{
             return this->etaj;
         }
 
-        //setter etaj
+        // setter for floor
         void setEtaj(int etaj_nou){
             if(etaj_nou > 0 && etaj_nou < 4)
                 this->etaj = etaj_nou;
         }
 
-        //getter schimb
+        // getter for shift
         int getSchimb() const{
             return this->schimb;
         }
 
-        //setter schimb
+        // setter for shift
         void setSchimb(int schimb_nou){
             if(schimb_nou > 0 && schimb_nou < 3)
                 this->schimb = schimb_nou;
         }
 
-        //afisare rol - metoda din clasa persoana
+        // display role
         std::string afisareRol() const override{
             return "Ospatar";
 
         }
 
-        //calculeaza salariu - pt fiecare an exeprienta avem bonus 100
+        // calculate salary: 100 bonus per year of experience
         float calculeazaSalariu() const override{
             return this->salariu + (this->schimb * 100.0f);
         }
 
 
-        //Create - interactiva
+        // interactive creation
         static void create(){
             std::string buffer;
             long long cnp_nou;
@@ -1330,15 +1318,15 @@ class Ospatar final : public Angajat{ // am folosit final pentru ca aceasta clas
             cout<<"Etaj: "; cin>>etaj;
             cout<<"Schimb: "; cin>>schimb;
         
-            Ospatar* nou = new Ospatar(buffer, gen_nou, cnp_nou, zi_noua, luna_noua, an_nou, sal_nou , etaj, schimb);//cream noul obiect 
-            nou->adaugaInCatalog(); // adaugam in catalog angajati doar obiectele cu new
-            nou->adaugaInPersonal(); //adaugam in catalog de personal
+            Ospatar* nou = new Ospatar(buffer, gen_nou, cnp_nou, zi_noua, luna_noua, an_nou, sal_nou , etaj, schimb);// create new object 
+            nou->adaugaInCatalog(); // add dynamic object to employee catalog
+            nou->adaugaInPersonal(); // add to staff catalog
             cout<<"Ospatar inregistrat cu succes!"<<endl;
             Logger::getInstance().log("S-a adaugat ospatarul " + buffer + " cu ID " + 
                                   to_string(nou->getId()) + " in catalogul de angajati si de personal.");
         }
 
-        //metoda toString
+        // toString method
         std::string toString() const override{
             std::ostringstream out;
 
@@ -1349,7 +1337,7 @@ class Ospatar final : public Angajat{ // am folosit final pentru ca aceasta clas
             return out.str();
         }
 
-         //operator atribuire
+         // assignment operator
         Ospatar& operator=(const Ospatar& sursa){
             if(this != &sursa){
                 Angajat::operator=(sursa);
@@ -1361,7 +1349,6 @@ class Ospatar final : public Angajat{ // am folosit final pentru ca aceasta clas
 
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class Administrator : public Persoana{
     private:
@@ -1372,7 +1359,7 @@ class Administrator : public Persoana{
 
     public:
 
-        //Constructor fara parametri
+        // default constructor
         Administrator()
              : Persoana("N/A", 'N'), profit(0),numeRestaurant("N/A"), aniFunctionare(0) {
 
@@ -1380,7 +1367,7 @@ class Administrator : public Persoana{
 
         }
 
-        //Constructor cu toti parametrii
+        // constructor with all parameters
         Administrator(const std::string& nume, char gen, long long cnp, int zi, int luna, int an, float profit, const std::string& numeRestaurant, int aniFunctionare)
             : Persoana(nume,gen,cnp,zi,luna,an), profit(profit),numeRestaurant(numeRestaurant), aniFunctionare(aniFunctionare){
 
@@ -1391,7 +1378,7 @@ class Administrator : public Persoana{
 
         }
         
-        //Constructor cu toti parametrii fara data nastere
+        // constructor without birth date
         Administrator(const std::string& nume, char gen, long long cnp, float profit, const std::string& numeRestaurant, int aniFunctionare)
             : Persoana(nume,gen,cnp), profit(profit),numeRestaurant(numeRestaurant), aniFunctionare(aniFunctionare){
 
@@ -1402,7 +1389,7 @@ class Administrator : public Persoana{
 
         }
 
-        //Constructor cu toti parametrii fara data nastere si cnp 
+        // constructor without birth date and cnp 
         Administrator(const std::string& nume, char gen, float profit, const std::string& numeRestaurant, int aniFunctionare)
             : Persoana(nume,gen), profit(profit),numeRestaurant(numeRestaurant), aniFunctionare(aniFunctionare){
 
@@ -1413,48 +1400,48 @@ class Administrator : public Persoana{
 
         }
         
-        //Constructor de copiere 
+        // copy constructor 
         Administrator(const Administrator& sursa)
             : Persoana(sursa), profit(sursa.profit),numeRestaurant(sursa.numeRestaurant), aniFunctionare(sursa.aniFunctionare){
 
             cout<<"Administrator - constructor de copiere apelat"<<endl;
         }
 
-        //Destructor
+        // destructor
         virtual ~Administrator() noexcept{
 
             cout<<"Administrator - destructor apelat"<<endl;
         }
 
-        //getter profit
+        // getter for profit
         float getProfit() const{
             return this->profit;
         }
 
-        //setter profit
+        // setter for profit
         void setProfit(float profit_nou){
             if(profit_nou > 0)
                 this->profit = profit_nou;
         }
 
-        //getter nume restaurant
+        // getter for name restaurant
         std::string getNumeRestaur() const{
             return this->numeRestaurant;
         }
 
-        //setter nume restaurant
+        // setter for name restaurant
         void setNumeRestaurant( const std::string& nume_nou){
             if(!nume_nou.empty()){
                 this->numeRestaurant = nume_nou;
             }
         }
 
-        //getter ani functionare
+        // getter for yeari functionare
         int getAniFunctionare() const{
             return this->aniFunctionare;
         }
 
-        //setter ani functionare
+        // setter for yeari functionare
         void setAniFunctionare( int ani){
             if(ani > 0){
                 this->aniFunctionare = ani;
@@ -1464,7 +1451,7 @@ class Administrator : public Persoana{
             }
         }
 
-        //Create - interactiva
+        // interactive creation
         static void create(){
             std::string buffer;
             long long cnp_nou;
@@ -1488,24 +1475,24 @@ class Administrator : public Persoana{
             cout<<"Nume restaurant: "; cin>>ws; getline(cin,nume);
             cout<<"Ani de functionare: "; cin>>aniFunc;
         
-            Administrator* nou = new Administrator(buffer, gen_nou, cnp_nou, zi_noua, luna_noua, an_nou, profit_nou, nume, aniFunc);//cream noul obiect 
-            nou->adaugaInPersonal(); //adaugam in catalog de personal
+            Administrator* nou = new Administrator(buffer, gen_nou, cnp_nou, zi_noua, luna_noua, an_nou, profit_nou, nume, aniFunc);// create new object 
+            nou->adaugaInPersonal(); // add to staff catalog
             cout<<"Administrator inregistrat cu succes!"<<endl;
             Logger::getInstance().log("S-a adaugat administratorul " + buffer + " cu ID " + 
                                   to_string(nou->getId()) + " in catalogul personalului.");
         }
 
-         //afisare rol - metoda virtuala din clasa persoana
+         // display role
         std::string afisareRol() const override{
             return "Administrator";
         }
 
-        //calculeaza salariu - scadem cheltuielile la firma
+        // calculate salary based on profit
         float calculeazaSalariu() const override{
             return this->profit - (this->profit * 0.2);
         }
 
-        //metoda toString()
+        // toString method
         std::string toString() const override {
             std::ostringstream out;
             
@@ -1518,9 +1505,9 @@ class Administrator : public Persoana{
             return out.str();
         }
 
-         //Operatorul de atribuire
+         // assignment operator
         Administrator& operator=(const Administrator& sursa){
-            if( this != &sursa){ //Verificam sa nu facem auto-atribuire
+            if( this != &sursa){ // self-assignment check
 
                 Persoana::operator=(sursa);
                 this->profit = sursa.profit;
@@ -1533,7 +1520,6 @@ class Administrator : public Persoana{
 
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Produs : public IObject{
 
     private:
@@ -1543,19 +1529,17 @@ class Produs : public IObject{
         int calorii;
         int stoc;
 
-        /* am ales vector deoarece structura unui Meniu este statica mai tot timpul
-        (nu se adauga/sterg produse la fiecare secunda). Vectorul ne ofera acces rapid 
-        in O(1) la orice produs, este eficient la afisare  */
+        // vector chosen for menu: stable structure with O(1) random access
        static std::vector<Produs*> meniu;
 
     public:
 
-        //Constructor fara parametri
+        // default constructor
         Produs(): nume("N/A") ,pret(0.0), calorii(0), stoc(0){
             cout<<"Produs - constructor apelat"<<endl;
         }
         
-        //Constructor cu toti parametrii
+        // constructor with all parameters
         Produs(const std::string& nume, float pret, int calorii, int stoc)
             :nume(nume),pret(pret), calorii(calorii), stoc(stoc){
                 
@@ -1566,7 +1550,7 @@ class Produs : public IObject{
 
         }
 
-        //Constructor cu nume si pret
+        // constructor with name and price
         Produs(const std::string& nume, float pret )
             :nume(nume), pret(pret), calorii(0), stoc(0){
             
@@ -1576,7 +1560,7 @@ class Produs : public IObject{
             }
         }
         
-        //Constructor cu nume , pret si stoc
+        // constructor with name, price and stock
         Produs(const std::string& nume, float pret,int stoc)
             : pret(pret), calorii(0), stoc(stoc){
 
@@ -1587,25 +1571,25 @@ class Produs : public IObject{
 
         }
 
-        // Constructor de copiere
+        // copy constructor
         Produs(const Produs& sursa) 
             :nume(sursa.nume), pret(sursa.pret), calorii(sursa.calorii), stoc(sursa.stoc) {
 
             cout<<"Produs - constructor de copiere apelat"<<endl;
         }
 
-        //Destructor
+        // destructor
         ~Produs() noexcept{
 
             cout<<"Produs - destructor apelat"<<endl;
         }
 
-        //Getter pret
+        // getter for price
         float getPret() const{
             return this->pret;
         }
 
-        //Setter pret
+        // setter for price
         void setPret(float pret){
             if(pret >= 1)
                 this->pret = pret;
@@ -1613,23 +1597,23 @@ class Produs : public IObject{
                 throw DateInvalideException(pret);
         }
 
-        //Getter calorii
+        // getter for calories
         int getCalorii() const{
             return this->calorii;
         }
 
-        //Setter calorii
+        // setter for calories
         void setCalorii(int calorii){
             if(calorii > 0)
                 this->calorii = calorii;
         }
 
-        //Getter Stoc
+        // getter for stock
         int getStoc() const{
             return this->stoc;
         }
 
-        //Setter stoc
+        // setter for stock
         void setStoc(int stoc){
             if(stoc > 0)
                 this->stoc = stoc;
@@ -1650,12 +1634,12 @@ class Produs : public IObject{
             }
         }
 
-        //Getter static
+        // getter for static count
         static int getNrProduseInMeniu() {
             return meniu.size();
         }
 
-        //Create - CRUD , creare interactiva pt meniu
+        // interactive creation for menu
         static void create() {
             std::string buffer;
             float p;
@@ -1667,14 +1651,14 @@ class Produs : public IObject{
             cout<<"Stoc: "; cin >> s;
 
             Produs* nou = new Produs(buffer, p, c, s);
-            nou->adaugaInMeniu(); // adaugam in meniu doar produsele cu new ca sa nu dezalocam dublu
+            nou->adaugaInMeniu(); // add dynamic object to menu
             cout << "Produs adaugat cu succes!"<<endl;
-            // Integrare Logger
+            // logger integration
             Logger::getInstance().log("S-a adaugat produsul '" + buffer + " cu ID " + 
                                   to_string(nou->getId()) + " in meniu.");
         }
 
-        //Afisare meniu
+        // print menu
         static void afisareMeniu(){
             cout<<" Meniu Restaurant ( "<<meniu.size()<<" ) produse"<<endl;
 
@@ -1684,16 +1668,16 @@ class Produs : public IObject{
             }
         }
 
-        //afiseaza meniu sortat dupa pret
+        // print menu sorted by price
         static void afiseazaMeniuSortatDupaPret() {
             if (meniu.empty()) { 
                 throw RestaurantException("Eroare Meniu: Nu se poate sorta deoarece meniul este gol!");
             }
 
-            auto meniuCopie = meniu; //facm o copie la meniu ca sa nu stricam ordinea originala
+            auto meniuCopie = meniu; // make copy of menu to preserve order
 
             std::sort(meniuCopie.begin(), meniuCopie.end(), [](const Produs* a, const Produs* b) {
-                return a->getPret() < b->getPret(); // sortează crescător după preț
+                return a->getPret() < b->getPret(); // sort ascending by price
             });
 
             cout<<"MENIU SORTAT DUPĂ PREȚ (CRESCĂTOR) "<<endl;
@@ -1703,19 +1687,19 @@ class Produs : public IObject{
             }
         }
 
-        //Adauga in meniu 
+        // add product to menu 
         void adaugaInMeniu() {
-            if(std::find(meniu.begin(), meniu.end(), this) == meniu.end()){ //vedem sa nu fie deja in meniu
+            if(std::find(meniu.begin(), meniu.end(), this) == meniu.end()){ // check if already in menu
                 meniu.push_back(this);
             }
         }
 
-        //Elimina produs din meniu 
+        // remove product from menu 
         static void eliminaProdus(const std::string& numeCautat){
             if(numeCautat.empty() || meniu.empty())
                 return;
 
-            //am folosit remove_if
+            // remove matching items
             auto it = std::remove_if(meniu.begin(), meniu.end(), [&numeCautat](Produs* p){
                 if(p->getNume() == numeCautat){
                     delete p;
@@ -1733,7 +1717,7 @@ class Produs : public IObject{
             }  
         }
 
-        //Curata meniu
+        // clear menu
         static void curataMeniu(){
            for(Produs* p : meniu){
                 delete p;
@@ -1741,14 +1725,14 @@ class Produs : public IObject{
            meniu.clear();
         }
 
-        //Aplica reducere
+        // apply discount
         void aplicaReducere(float procent) {
             if (procent > 0 && procent <= 100) {
                 this->pret -= this->pret * (procent / 100);
             }
         }
 
-        //Aplica reducere dupa nume
+        // apply discount by name
         static void aplicaReducereInMeniu(const std::string& numeCautat, float procent){
             if(numeCautat.empty()){
                throw RestaurantException("Eroare Meniu: Nume invalid sau meniul este gol!");
@@ -1767,7 +1751,7 @@ class Produs : public IObject{
                 throw ProdusInexistentException(numeCautat);
         }
 
-        //cauta produs in meniu
+        // find product by name
         static Produs* getProdusDinMeniu(const std::string& numeP){
             for(Produs* p : meniu){
                 if(p->getNume() == numeP)
@@ -1776,7 +1760,7 @@ class Produs : public IObject{
             return nullptr;
         }
 
-        //metoda toString()
+        // toString method
         std::string toString() const override {
             std::ostringstream out;
             
@@ -1789,9 +1773,9 @@ class Produs : public IObject{
             return out.str();
         }
 
-        //Operator atribuire
+        // assignment operator
         Produs& operator=(const Produs& sursa){
-            if(this != &sursa){ //verificam direct adresa
+            if(this != &sursa){ // self-assignment check
 
                 this->pret = sursa.pret;
                 this->calorii = sursa.calorii;
@@ -1799,41 +1783,41 @@ class Produs : public IObject{
                 this->nume = sursa.nume;
             }
 
-            return *this; //pt inlantuire 
+            return *this; // return reference for chaining 
         }
     
-        //Declaram operator intrare
+        // input operator declaration
         friend istream& operator>>(istream& in, Produs& p);
 
-        //Operatori matematici
+        // arithmetic operators
         friend Produs operator+(const Produs& p, int cantitate);
         friend Produs operator+(int cantitate, const Produs& p);
         friend Produs operator-(const Produs& p, int cantitate);
         
-        //Operatori relationali
+        // comparison operators
         friend bool operator<(const Produs& p1, const Produs& p2);
         friend bool operator==(const Produs& p1, const Produs& p2);
 
-        //Operatori de incrementare
-        Produs& operator++(); //Prefixat ++p
-        Produs operator++(int); //Postfixat p++
-        Produs& operator--(); //Prefixat --p
-        Produs operator--(int); //Postfixat p--
+        // increment operators
+        Produs& operator++(); // prefix increment
+        Produs operator++(int); // postfix increment
+        Produs& operator--(); // prefix decrement
+        Produs operator--(int); // postfix decrement
 
-        //Operatorul index[]
+        // subscript operator
         char& operator[](int index);
 
-        //Operator conversie int
+        // int conversion operator
         explicit operator int() const {
             return this->stoc;
         }
 
-};/*----------------------------------------------------------------------------------------------------------*/
+};
 
-//Operator intrare
+// input operator
 istream& operator>>(istream& in, Produs& p){
     cout<<"Introduceti numele:";
-    //buffer ul e temporar 
+    // temporary buffer 
     std::string buffer;
     in>>ws;
     getline(in, buffer);
@@ -1845,19 +1829,19 @@ istream& operator>>(istream& in, Produs& p){
     return in;
 }
 
-//Adunare
+// addition operator
 Produs operator+(const Produs& p, int cantitate) {
     Produs copie = p;
     if (cantitate > 0) copie.stoc += cantitate;
     return copie;
 }
 
-//Adunare comutativa
+// commutative addition
 Produs operator+(int cantitate, const Produs& p) {
     return p + cantitate; 
 }
 
-//Scadere
+// subtraction operator
 Produs operator-(const Produs& p, int cantitate) {
     Produs copie = p;
     if (p.stoc - cantitate >= 0) copie.stoc -= cantitate;
@@ -1865,30 +1849,30 @@ Produs operator-(const Produs& p, int cantitate) {
     return copie;
 }
 
-//Comparatie mai mic
+// less-than comparison
 bool operator<(const Produs& p1, const Produs& p2) {
     return p1.pret < p2.pret;
 }
 
-//Egalitate
+// equality operator
 bool operator==(const Produs& p1, const Produs& p2) {
     return (p1.nume == p2.nume && p1.pret == p2.pret);
 }
 
-//Incrementare prefixata ++p
+// prefix increment
 Produs& Produs::operator++(){
     this->stoc++;
     return *this;
 }
 
-//Incrementare prefixata p++
+// postfix increment
 Produs Produs::operator++(int){
     Produs copie = *this;
     this->stoc++;
     return copie;
 }
 
-//Decrementare prefixata --p
+// prefix decrement
 Produs& Produs::operator--(){
     if(this->stoc > 0)
         this->stoc--;
@@ -1896,7 +1880,7 @@ Produs& Produs::operator--(){
     
 }
 
-//Decrementare prefixata p--
+// postfix decrement
 Produs Produs::operator--(int){
     Produs copie = *this;
     if(this->stoc > 0)
@@ -1905,7 +1889,7 @@ Produs Produs::operator--(int){
     
 }
 
-// Operatorul Index
+// subscript operator
 char& Produs::operator[](int index) {
     if (index >= 0 && index < (int)this->nume.size()) {
         return this->nume[index];
@@ -1916,7 +1900,6 @@ char& Produs::operator[](int index) {
 
 std::vector<Produs*> Produs::meniu;
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 class Masa : public IObject{
@@ -1927,18 +1910,18 @@ class Masa : public IObject{
         bool status;
         std::string observatii;
 
-        /*am folosit vector din acelasi motiv pt care l am folosit la meniu , catalogul de mese nu se schimba des*/
+        // vector chosen for table catalog: fixed size and quick indexed access
         static std::vector<Masa*> catalogMese;
 
     public:
 
-        //Constructor fara parametri
+        // default constructor
         Masa() : capacitate(0), nrPersoane(0), status(false), observatii("N/A"){
 
             cout<<"Masa - constructor apelat"<<endl;
         }
 
-        //Constructor cu toti parametri
+        // constructor with all parameters
         Masa(int capacitate, int nrPersoane, bool status, const std::string& obs)
             : capacitate(capacitate), nrPersoane(nrPersoane), status(status), observatii(obs){
 
@@ -1950,7 +1933,7 @@ class Masa : public IObject{
 
         }
 
-        //Constructor cu capacitate si numar persoane
+        // constructor with capacity and person count
         Masa(int capacitate, int nrPersoane)
             : capacitate(capacitate), nrPersoane(nrPersoane), observatii("N/A") {
 
@@ -1962,14 +1945,14 @@ class Masa : public IObject{
 
         }
 
-        //Constructor cu nr persoane si status
+        // constructor with person count and status
         Masa(int nrPersoane, bool status)
             :capacitate(0), nrPersoane(nrPersoane), status(status), observatii("N/A"){
 
             cout<<"Masa - constructor apelat"<<endl;
         }
 
-        //Constructor de copiere
+        // copy constructor
         Masa(const Masa& m)
             :capacitate(m.capacitate), nrPersoane(m.nrPersoane), status(m.status), observatii(m.observatii) {
 
@@ -1982,62 +1965,62 @@ class Masa : public IObject{
 
         }
 
-        //Getter capacitate
+        // getter for capacity
         int getCapacitate() const{
             return this->capacitate;
         }
 
-        //Setter capacitate
+        // setter for capacity
         void setCapacitate(int capacitate_noua){
             if(capacitate_noua > 0)
                 this->capacitate = capacitate_noua;
         }
 
-        //Getter numar persoane
+        // getter for person count
         int getNrPersoane() const{
             return this->nrPersoane;
         }
 
-        //Setter numar persoane
+        // setter for person count
         void setNrPersoane(int nr_nou){
             if(nr_nou >= 0 && nr_nou <= this->capacitate){
                 this->nrPersoane = nr_nou;
             }
         }
 
-        //Getter status
+        // getter for status
         bool getStatus() const{
             return this->status;
         }
 
-        //Setter status
+        // setter for status
         void setStatus(bool status_nou){
             this->status = status_nou;
         }
 
-        //Getter observatii
+        // getter for notes
         std::string getObs() const{
             return this->observatii;
         }
 
-        //Setter observatii
+        // setter for notes
         void setObs(const std::string& obs_noi){
             if(!obs_noi.empty()){
                 this->observatii = obs_noi;
             }
         }
 
-         //Getter static numar mese
+         // getter for total tables count
         static int getNrMese(){
             return catalogMese.size();
         }
 
-        //Poate primi grup 
+        // check if table can seat group 
         bool poatePrimiGrup(int nrPers) const{
             return(!this->status && this->capacitate >= nrPers);
         }
 
-        //Elibereaza masa
+        // free table
         void elibereazaMasa(){
             this->nrPersoane = 0;
             this->status = false;
@@ -2045,7 +2028,7 @@ class Masa : public IObject{
             cout<<"Masa a fost eliberata cu succes"<<endl;
         }
 
-        //Get masa dupa id 
+        // get table by id 
         static Masa* getMasaDupaId(int idCautat){
             auto it = std::find_if(catalogMese.begin(), catalogMese.end(), [idCautat](Masa* m){
                 return m->getId() == idCautat;
@@ -2059,7 +2042,7 @@ class Masa : public IObject{
             return nullptr;
         }
 
-        //Creare masa interactiva, pt meniu
+        // interactive table creation
         static void createMasa(){
             int cap, nrP;
             std::string buffer;
@@ -2071,7 +2054,7 @@ class Masa : public IObject{
             cin>>ws;
             getline(cin, buffer);
 
-            //adaugam doar obiectele cu new in catalog 
+            // add dynamic object to catalog 
             Masa* noua = new Masa(cap, nrP, (nrP > 0), buffer);
             noua->adaugaInCatalog();
             cout<<"Masa a fost adaugata in catalog."<<endl;
@@ -2079,7 +2062,7 @@ class Masa : public IObject{
 
         }
 
-        //Ocupa masa
+        // occupy table
         void ocupaMasa(int nrP){
             if(this->status == true){
                 throw RestaurantException("Eroare Masa: Masa " + to_string(this->id) + " este deja ocupata!");
@@ -2095,7 +2078,7 @@ class Masa : public IObject{
 
         }
 
-        //nr mese libere cu count_if
+        // count free tables
         static int nrMeseLibere(){
             if(catalogMese.empty()){
                 cout<<"Nu exista mese in catalog."<<endl;
@@ -2111,7 +2094,7 @@ class Masa : public IObject{
             return meseLibere;
         }
 
-        //Cauta mese libere -> foloseste functia nrMeseLibere
+        // find and display free tables
         static void cautaMeseLibere(int nrP){
 
             int libere = nrMeseLibere();
@@ -2132,14 +2115,14 @@ class Masa : public IObject{
             }
         }
 
-        //Adauga masa in catalog
+        // add table to catalog
         void adaugaInCatalog() {
             if(std::find(catalogMese.begin(), catalogMese.end(), this) == catalogMese.end()){
                 catalogMese.push_back(this);
             }
         }
 
-        //Elimina masa din catalog
+        // remove table from catalog
         static void eliminaMasa(int idCautat){
             auto it = remove_if(catalogMese.begin(), catalogMese.end(), [idCautat](Masa* m){
                 if(m->getId() == idCautat){
@@ -2149,7 +2132,7 @@ class Masa : public IObject{
                 return false;
             });
 
-            //stergem tot fundul vectorului ptc remove_if pune elementele pe care vrem sa le stergem la capatul vectorului
+            // erase removed elements from vector
             if(it != catalogMese.end()){
                 catalogMese.erase(it, catalogMese.end());
                 cout<<"Masa cu id: "<<idCautat<<" a fost eliminata cu succes"<<endl;
@@ -2159,7 +2142,7 @@ class Masa : public IObject{
             }
         }
 
-        //Afisare catalog
+        // print table catalog
         static void afisareCatalog(){
             cout<<" Stare mese terasa ( "<<catalogMese.size()<<" mese )"<<endl;
 
@@ -2170,7 +2153,7 @@ class Masa : public IObject{
             }
         }
 
-        //Curata catalog
+        // clear catalog
         static void curataCatalog(){
             for(Masa* m : catalogMese){
                 delete m;
@@ -2179,7 +2162,7 @@ class Masa : public IObject{
         }
 
 
-        //Stergere date masa
+        // reset table data
         void stergeDateMasa(){
             this->capacitate = 0;
             this->nrPersoane = 0;
@@ -2189,20 +2172,20 @@ class Masa : public IObject{
             cout<<"Datele mesei au fost sterse"<<endl;
         }
 
-        //metoda toString()
+        // toString method
         std::string toString() const override {
             std::ostringstream out;
             std::string obsP = this->observatii;
 
-            //daca cineva a scris "VIP" il evidentiem
+            // highlight VIP notes
             size_t pos = obsP.find("VIP");
             if (pos != std::string::npos) {
                 obsP.replace(pos, 3, "***VIP***"); 
             }
-            //daca observatia e prea lunga o scurtam 
+            // truncate long notes 
             if (obsP.length() > 30) {
                 obsP = obsP.substr(0, 27); 
-                obsP.append("..."); // Adaugam puncte de suspensie
+                obsP.append("..."); // add ellipsis
             }
             
             out<<"ID Masa: "<<to_string(this->getId())<<endl
@@ -2214,7 +2197,7 @@ class Masa : public IObject{
             return out.str();
         }
 
-        //Operatorul de atribuire
+        // assignment operator
         Masa& operator=( const Masa& m){
             if(this != &m){
                 this->capacitate = m.capacitate;
@@ -2227,36 +2210,36 @@ class Masa : public IObject{
             return *this;
         }
 
-        //Operator conversie bool
+        // bool conversion operator
         explicit operator bool() const{
             return this->status;
         }
 
-        //Declaram operator intrare
+        // input operator declaration
         friend istream& operator>>(istream& in, Masa& m);
 
-        //Operatori matematici
+        // arithmetic operators
         friend Masa operator+(const Masa& m, int cantitate);
         friend Masa operator+(int cantitate, const Masa& m);
         friend Masa operator-(const Masa& m, int cantitate);
         
-        //Operatori relationali
+        // comparison operators
         friend bool operator<(const Masa& m1,const Masa& m2);
         friend bool operator==(const Masa& m1,const Masa& m2);
 
-        //Operatori de incrementare
-        Masa& operator++(); //Prefixat ++m
-        Masa operator++(int); //Postfixat m++
-        Masa& operator--(); //Prefixat --m
-        Masa operator--(int); //Postfixat m--
+        // increment operators
+        Masa& operator++(); // prefix increment
+        Masa operator++(int); // postfix increment
+        Masa& operator--(); // prefix decrement
+        Masa operator--(int); // postfix decrement
 
-        //Operatorul index[]
+        // subscript operator
         char& operator[](int index);
 
-};/*---------------------------------------------------------------------------*/
+};
 
 
-//Operator intrare
+// input operator
 istream& operator>>(istream& in, Masa& m){
 
     cout<<"Capacitate: "; in>>m.capacitate;
@@ -2272,7 +2255,7 @@ istream& operator>>(istream& in, Masa& m){
     return in;
 }
 
-//Operator adunare
+// addition operator
 Masa operator+(const Masa& m, int cantitate){
     Masa copie = m;
     if(cantitate > 0)
@@ -2281,12 +2264,12 @@ Masa operator+(const Masa& m, int cantitate){
     return copie;
 }
 
-//Adunare comutativa
+// commutative addition
 Masa operator+(int cantitate, const Masa& m){
     return m + cantitate;
 }
 
-//Operator scadere 
+// subtraction operator 
 Masa operator-(const Masa& m, int cantitate){
     Masa copie = m;
     if(copie.capacitate >= cantitate)
@@ -2296,17 +2279,17 @@ Masa operator-(const Masa& m, int cantitate){
 
 }
 
-//Comparatie dupa capacitate
+// capacity comparison
 bool operator<(const Masa& a, const Masa& b){
     return a.capacitate < b.capacitate;
 }
 
-//Egalitate dupa capacitate
+// capacity equality
 bool operator==(const Masa& a, const Masa& b){
     return a.capacitate == b.capacitate;
 }
 
-//Operator incrementare prefixat ++ m
+// prefix increment
 Masa& Masa::operator++(){
     if(this->nrPersoane < this->capacitate){
         this->nrPersoane++;
@@ -2315,7 +2298,7 @@ Masa& Masa::operator++(){
     return *this;
 }
 
-//Operator incrementare postfixat m++
+// postfix increment
 Masa Masa::operator++(int){
     Masa copie = *this;
     if(this->nrPersoane < this->capacitate){
@@ -2326,7 +2309,7 @@ Masa Masa::operator++(int){
     return copie;
 }
 
-//Operator decrementare prefixat --m
+// prefix decrement
 Masa& Masa::operator--(){
     if(this->nrPersoane > 0 ){
         this->nrPersoane--;
@@ -2337,7 +2320,7 @@ Masa& Masa::operator--(){
     return *this;
 }
 
-//Operator decrementare postfixat m--
+// postfix decrement
 Masa Masa::operator--(int){
     Masa copie = *this;
     if(this->nrPersoane > 0 ){
@@ -2349,7 +2332,7 @@ Masa Masa::operator--(int){
     return copie;
 }
 
-//Operatorul index
+// subscript operator
 char& Masa::operator[](int index) {
     if (!this->observatii.empty() && index >= 0 && index < (int)this->observatii.size()) {
         return this->observatii[index];
@@ -2359,7 +2342,7 @@ char& Masa::operator[](int index) {
 }
 
 std::vector<Masa*> Masa:: catalogMese;
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 class Comanda : public IObject{
 
@@ -2369,15 +2352,13 @@ class Comanda : public IObject{
         int nrP;
         float total;
 
-        /*am ales list deoarece comenzile sunt
-        adaugate si anulate frecvent. Lista permite inserarea si stergerea 
-        in timp constant O(1) , evitand realocarile de memorie. */
+        // list chosen for active orders: frequent insertions and deletions in O(1)
         static std::list<Comanda*> comenzi;
         static const float TVA;
 
     public:
 
-        //Constructor fara parametri
+        // default constructor
         Comanda()
             : idMasa(0), nrP(0), total(0){
             
@@ -2385,7 +2366,7 @@ class Comanda : public IObject{
             this->produse = nullptr;
         }
 
-        //Constructor cu toti parametrii
+        // constructor with all parameters
         Comanda(int idMasa, Produs* produse, int nrP)
             : idMasa(idMasa), nrP(nrP){
 
@@ -2408,7 +2389,7 @@ class Comanda : public IObject{
             }
         }
 
-        //Constructor cu idMasa si nrP
+        // constructor with table id and person count
         Comanda(int idMasa, int nrP)
             :idMasa(idMasa), nrP(nrP), total(0){
 
@@ -2422,7 +2403,7 @@ class Comanda : public IObject{
             }
         }
 
-        //Constructor cu id masa explicit
+        // constructor with explicit table id
         explicit Comanda(int idMasa)
             :idMasa(idMasa), nrP(0), total(0){
             
@@ -2430,7 +2411,7 @@ class Comanda : public IObject{
             this->produse = nullptr;
         }
 
-        //Constructor de copiere
+        // copy constructor
         Comanda(const Comanda& sursa)
             :idMasa(sursa.idMasa), nrP(sursa.nrP), total(sursa.total){
 
@@ -2449,32 +2430,32 @@ class Comanda : public IObject{
             }
         }
 
-        //Destructor
+        // destructor
         ~Comanda() noexcept{
 
             cout<<"Comanda - destructor apelat"<<endl;
             
-            //dezalocam produse
+            // deallocate products
             if(this->produse != nullptr){
                 delete[] this->produse;
                 this->produse = nullptr;
             }
         }
 
-        //Getter idMasa
+        // getter for table id
         int getIdMasa() const{
             return this->idMasa;
         }
 
-        //Setter idMasa
+        // setter for table id
         void setIdMasa(int idMasa_nou){
             if(idMasa_nou > 0)
                 this->idMasa = idMasa_nou;
         }
 
-        //Getter produse
+        // getter for products
         Produs* getProduse() const{
-            //facem o copie
+            // copy product list
             if(this->produse != nullptr && this->nrP > 0){
                 Produs* copie = new Produs[this->nrP];
                 for(int i = 0; i < this->nrP; i++ ){
@@ -2482,22 +2463,22 @@ class Comanda : public IObject{
                 }
 
                 return copie;
-                //returnam copia pt siguranta
+                // return copy for safety
             }
             return nullptr;
         }
 
-        //Setter produse
+        // setter for products
         void setProduse(Produs* produse_noi, int nrP_nou){
             if(produse_noi != nullptr && nrP_nou > 0){
 
-                //stegrem produsele vechi
+                // deallocate previous products
                 if(this->produse != nullptr){
                     delete[] this->produse;
                 }
 
                 if(produse_noi != nullptr && nrP_nou > 0){
-                    //cream noul vector de preturi
+                    // build updated prices vector
                     this->produse = new Produs[nrP_nou];
                     this->nrP = nrP_nou;
                     float suma = 0;
@@ -2516,22 +2497,22 @@ class Comanda : public IObject{
             }
         }
 
-        //Getter nrP
+        // getter for person count
         int getNrP() const{
             return this->nrP;
         }
 
-        //Getter total
+        // getter for total
         float getTotal() const{
             return this->total;
         }
 
-        //Getter static numar comenzi
+        // getter for total orders count
         static int getNrComenzi(){
             return comenzi.size();
         }
 
-        //get comanda dupa id
+        // get order by id
         static Comanda* getComandaDupaId( int idCautat){
             if(comenzi.empty()){
                 return nullptr;
@@ -2547,7 +2528,7 @@ class Comanda : public IObject{
             return nullptr;
         }
 
-        //Adauga produs 
+        // add product to order 
         void adaugaProdus(const Produs& produsNou){
 
             Produs* temp = new Produs[this->nrP + 1];
@@ -2563,18 +2544,18 @@ class Comanda : public IObject{
             this->produse = temp;
             this->nrP++;
             this->total += produsNou.getPret();
-            //logger
+            // log event
             Logger::getInstance().log("Produs adaugat la comanda. Total curent: " + format2(total));
         }
         
 
-        //Sterge produs dupa nume
+        // remove product by name
         void stergeProdus(const std::string& numeP){
             if(this->produse == nullptr || this->nrP == 0){
                 throw RestaurantException("Eroare Comanda: Comanda este deja goala! Nu exista produse de sters.");
             }
             int index = -1;
-            //cautam indexul dupa produs, il stergem pe primul gasit
+            // find first product match by name
             for(int i = 0; i < this->nrP; i++){
                 if(this->produse[i].getNume() == numeP){
                     index = i;
@@ -2583,7 +2564,7 @@ class Comanda : public IObject{
             }
 
             if(index != -1){
-                //daca e doar un singur produs il stergem si ramane lista goala
+                // single product removal clears order
                 float pretSters = this->produse[index].getPret();
                 if(this->nrP == 1){
                     delete[] this->produse;
@@ -2592,7 +2573,7 @@ class Comanda : public IObject{
                     this->total = 0;
                 }
                 else{
-                    //cream o noua lista cu pretul sters in minus
+                    // rebuild list without removed item
                     Produs* temp = new Produs[this->nrP - 1];
                     int poz = 0;
                     for(int i = 0; i < this->nrP; i++){
@@ -2613,7 +2594,7 @@ class Comanda : public IObject{
             }
         }
 
-        //Afisare istoric comenzi / getter comenzi
+        // print order history
         static void AfisareComenzi(){
             cout<<" Numar comenzi Restaurant Galmondo: ( "<<comenzi.size()<<" ) "<<endl;
 
@@ -2624,16 +2605,16 @@ class Comanda : public IObject{
             }
         }
 
-        //Adauga comanda in catalog comenzi 
+        // add order to catalog 
         void adaugaInComenzi() {
             auto it = std::find(comenzi.begin(), comenzi.end(), this);
 
-            if(it == comenzi.end()){ //evitam duplicatele
+            if(it == comenzi.end()){ // prevent duplicate orders
                 comenzi.push_back(this);
             }
         }
 
-        // elimina comanda cu remove_if (NU necesita erase)
+        // remove order with remove_if
         static void eliminaComanda(int idCautat) {
             if (comenzi.empty()) {
                 throw RestaurantException("Eroare Comanda: Istoricul comenzilor este gol!");
@@ -2657,7 +2638,7 @@ class Comanda : public IObject{
             }
         }
 
-        //Curata catalog comenzi
+        // clear order catalog
         static void curataComenzi(){
             for(Comanda* c : comenzi){
                 delete c;
@@ -2666,7 +2647,7 @@ class Comanda : public IObject{
             comenzi.clear();
         }
 
-        //Calculeaza valoarea taxei dupa total
+        // calculate tip/tax amount
         float getValoareTVA() const{
             if(this->total > 0){
                 return this->total - (this->total / (1.0f + TVA));
@@ -2674,7 +2655,7 @@ class Comanda : public IObject{
             return 0;
         }
 
-        //Nota de plata
+        // print receipt
         void afiseazaNota() const{
             cout<<"Detalii nota: "<<endl;
             if(this->nrP > 0 && this->produse != nullptr){
@@ -2694,18 +2675,18 @@ class Comanda : public IObject{
             cout<<"Total de plata: "<<this->total<<endl;
         }
 
-        //Aplica reducere
+        // apply discount
         void aplicaReducere(int procent){
             if(procent > 0 && procent <= 100){
                 if(this->produse != nullptr && this->nrP > 0){
                     
-                    //Aplicam reducerea pe fiecare pret;
+                    // apply discount to item prices
                     for(int i = 0; i < this->nrP; i++){
                         float reducere = (this->produse[i].getPret() * (float)procent) / 100.0f;
                         this->produse[i].setPret( this->produse[i].getPret() - reducere);
                     }
 
-                    //Aplicam reducerea pe total
+                    // apply discount to total
                     float reducere_total = (this->total * (float)procent ) / 100.0f;
                     this->total -= reducere_total;
 
@@ -2714,13 +2695,13 @@ class Comanda : public IObject{
             }
         }
 
-        //reducere de HappyHour globala cu for_each
+        // global happy hour discount using for_each
         static void HappyHour(int procent) {
             if (comenzi.empty()) {
                 throw RestaurantException("Eroare Comanda: Nu exista comenzi active pentru Happy Hour!");
             }
 
-            // folosim for_each 
+            // apply to all orders 
             std::for_each(comenzi.begin(), comenzi.end(), [procent](Comanda* c) {
                 c->aplicaReducere(procent); 
             });
@@ -2728,7 +2709,7 @@ class Comanda : public IObject{
             cout<<"Reducerea de "<<procent<<" % a fost aplicata pe toate comenzile active!"<<endl;
         }
 
-        //Creare comanda, interactiva pt meniul crud
+        // interactive order creation
         static void createComanda(){
             int id, nr;
             cout<<"----Creare comanda noua----"<<endl;
@@ -2762,7 +2743,7 @@ class Comanda : public IObject{
                                   to_string(noua->getId()) + " in istoricul comenzilor.");
         }
 
-        //metoda toString()
+        // toString method
         std::string toString() const override {
             std::ostringstream out;
             
@@ -2784,7 +2765,7 @@ class Comanda : public IObject{
             return out.str();
         }
 
-        //Operator atribuire
+        // assignment operator
         Comanda& operator=(const Comanda& sursa){
             if(this != &sursa){
                 this->idMasa = sursa.idMasa;
@@ -2810,40 +2791,40 @@ class Comanda : public IObject{
             return * this;
         }
 
-        //Operator conversie float
+        // float conversion operator
         explicit operator float() const{
             return this->total;
         }
 
-        //Operator negare
+        // logical not operator
         bool operator!() const {
             return (this->nrP == 0 || this->produse == nullptr);
         }
 
-        //Declaram operator intrare
+        // input operator declaration
         friend istream& operator>>(istream& in, Comanda& c);
 
-        //Operatori matematici
+        // arithmetic operators
         friend Comanda operator+(const Comanda& c, int cantitate);
         friend Comanda operator+(int cantitate, const Comanda& c);
         friend Comanda operator-(const Comanda& c, int cantitate);
         
-        //Operatori relationali
+        // comparison operators
         friend bool operator<(const Comanda& c1,const Comanda& c2);
         friend bool operator==(const Comanda& c1,const Comanda& c2);
 
-        //Operatori de incrementare
-        Comanda& operator++(); //Prefixat ++c
-        Comanda operator++(int); //Postfixat c++
-        Comanda& operator--(); //Prefixat --c
-        Comanda operator--(int); //Postfixat c--
+        // increment operators
+        Comanda& operator++(); // prefix increment
+        Comanda operator++(int); // postfix increment
+        Comanda& operator--(); // prefix decrement
+        Comanda operator--(int); // postfix decrement
 
-        //Operatorul index[]
+        // subscript operator
         Produs& operator[](int index);
 
 };
 
-//Operator intrare
+// input operator
 istream& operator>>(istream& in, Comanda& c){
     cout<<"Introduceti numarul mesei: ";
     in>>c.idMasa;
@@ -2882,7 +2863,7 @@ istream& operator>>(istream& in, Comanda& c){
     return in;
 }
 
-//Operator adunare
+// addition operator
 Comanda operator+(const Comanda& c, int cantitate){
     Comanda copie = c;
     if(cantitate > 0)
@@ -2891,12 +2872,12 @@ Comanda operator+(const Comanda& c, int cantitate){
     return copie;
 }
 
-//Adunare comutativa
+// commutative addition
 Comanda operator+(int cantitate, const Comanda& c){
     return c + cantitate;
 }
 
-//Operator scadere 
+// subtraction operator 
 Comanda operator-(const Comanda& c, int cantitate){
     Comanda copie = c;
     if(copie.total >= cantitate)
@@ -2906,37 +2887,37 @@ Comanda operator-(const Comanda& c, int cantitate){
 
 }
 
-//Comparatie dupa total
+// total comparison
 bool operator<(const Comanda& a, const Comanda& b){
     return a.total < b.total;
 }
 
-//Egalitate dupa total
+// total equality
 bool operator==(const Comanda& a, const Comanda& b){
     return a.total == b.total;
 }
 
-//Operator incrementare prefixat ++ c
+// prefix increment
 Comanda& Comanda::operator++(){
     this->total += 10;
     return *this;
 }
 
-//Operator incrementare postfixat c++
+// postfix increment
 Comanda Comanda::operator++(int){
     Comanda copie = *this;
     this->total += 10;
     return copie;
 }
 
-//Operator decrementare prefixat --c
+// prefix decrement
 Comanda& Comanda::operator--(){
     if(this->total >= 10)
         this->total -= 10;
     return *this;
 }
 
-//Operator decrementare postfixat c--
+// postfix decrement
 Comanda Comanda::operator--(int){
     Comanda copie = *this;
     if(this->total >= 10)
@@ -2944,7 +2925,7 @@ Comanda Comanda::operator--(int){
     return copie;
 }
 
-//Operatorul index
+// subscript operator
 Produs& Comanda::operator[](int index) {
     if (this->produse != nullptr &&  index >= 0 && index < this->nrP ) {
         return this->produse[index];
@@ -2956,10 +2937,8 @@ Produs& Comanda::operator[](int index) {
 std::list<Comanda*> Comanda::comenzi;
 const float Comanda::TVA = 0.21f;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*==========================================================================================================================*/
 
-//metoda din clasa persoana 
+// modify person details implementation 
 void Persoana::modificaDate() {
 
     if(personal.empty()){
@@ -2977,7 +2956,7 @@ void Persoana::modificaDate() {
         if(p != nullptr && p->nume == numeC) {
             gasit = true;
 
-            //incercam downcast la bucatar
+            // downcast to chef
             Bucatar* b = dynamic_cast<Bucatar*>(p);
             if(b != nullptr){
                 int opt;
@@ -3025,7 +3004,7 @@ void Persoana::modificaDate() {
                 return;
             }
             
-            //incercam downcast la ospatar
+            // downcast to waiter
             Ospatar* o = dynamic_cast<Ospatar*>(p);
             if(o != nullptr){
                 int opt;
@@ -3073,7 +3052,7 @@ void Persoana::modificaDate() {
                 return;
             }
 
-            //inceram downcast la administrator
+            // downcast to administrator
             Administrator* a = dynamic_cast<Administrator*>(p);
             if(a != nullptr){
                 int opt;
@@ -3121,7 +3100,7 @@ void Persoana::modificaDate() {
                 return;
             }
 
-            //nu a reusit niciun downcast -> e angajat generic
+            // generic employee fallback
             Angajat* ang = dynamic_cast<Angajat*>(p);
             if(ang != nullptr){
                 int opt;
@@ -3168,10 +3147,9 @@ void Persoana::modificaDate() {
     }
 }
 
-/*======================================================================================================================*/
 
 
-//pentru cand avem un RegistruFeedback<string> dar primim un int (nota)
+// int to string conversion for feedback register
 std::string conversieSteleInText(int stele) {
     switch(stele) {
         case 5: return "Excelent (5 stele) - Clientul a fost incantat!";
@@ -3183,7 +3161,7 @@ std::string conversieSteleInText(int stele) {
     }
 }
 
-//pentru cand avem un RegistruFeedback<int> dar primim un text
+// string to int conversion for feedback register
 int conversieTextInStele(std::string calificativ) {
     if(calificativ == "Excelent") return 5;
     if(calificativ == "Foarte bine") return 4;
@@ -3191,78 +3169,77 @@ int conversieTextInStele(std::string calificativ) {
     if(calificativ == "Slab") return 2;
     if(calificativ == "Foarte slab") return 1;
     
-    // Returnam 0 ca mecanism de siguranta daca textul nu se potriveste
+    // safety fallback
     return 0; 
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/* ABSTRACT FACTORY */
+// abstract factory
 
-//interfetele pt cele 2 tipuri de produse :
+// abstract product interfaces
 
-//tip produs : fel principal
+// product type: main course
 class IFelPrincipal : public IObject {
 public:
     virtual void pregatesteMancarea() const = 0;
 };
 
-//tip produs : bautura
+// product type: beverage
 class IBautura : public IObject {
 public:
     virtual void toarnaInPahar() const = 0;
 };
 
-//produse concrete ( mostenesc bautura/fel principal):
+// concrete products
 
-//fel principal non-vegan ( mosteneste fel principal )
+// regular main course
 class BurgerClasic : public IFelPrincipal {
 public:
     void pregatesteMancarea() const override {
         cout<<"[Bucatarie] Se pregateste Burger Clasic cu vita si cascaval."<<endl;
     }
 
-    //suprascriem toString pt IObject
+    // override toString for IObject
     string toString() const override { return "Produs: Burger Clasic"; }
 };
 
 
-//bautura non-vegana ( mosteneste bautura )
+// regular beverage
 class Milkshake : public IBautura {
 public:
     void toarnaInPahar() const override {
         cout<<"[Bar] Se toarna Milkshake ."<<endl;
     }
 
-    //trb sa suprascriem toString pt IObject
+    // override toString for IObject
     string toString() const override { return "Bautura: Milkshake cu lapte si inghetata de vanilie."; }
 };
 
-//fel principal vegan ( mosteneste fel principal )
+// vegan main course
 class BurgerVegan : public IFelPrincipal {
 public:
     void pregatesteMancarea() const override {
         cout<<"[Bucatarie] Se pregateste Burger Vegan cu chiftea de naut."<<endl;
     }
 
-    //trb sa suprascriem toString pt IObject
+    // override toString for IObject
     string toString() const override { return "Produs: Burger Vegan"; }
 };
 
 
-//bautura vegana ( mosteneste bautura )
+// vegan beverage
 class Limonada : public IBautura {
 public:
     void toarnaInPahar() const override {
         cout<<"[Bar] Se pregateste Limonada proaspata cu menta."<<endl;
     }
 
-    //trb sa suprascriem toString pt IObject
+    // override toString for IObject
     string toString() const override { return "Bautura: Limonada"; }
 };
 
 
-//fabrica meniu
+// abstract factory interface
 class IFabricaMeniu {
 public:
     virtual IFelPrincipal* creazaFelPrincipal() const = 0;
@@ -3271,9 +3248,9 @@ public:
 };
 
 
-//fabrici concrete:
+// concrete factories
 
-//fabrica pt non-vegan
+// standard menu factory
 class FabricaStandard : public IFabricaMeniu {
 public:
     IFelPrincipal* creazaFelPrincipal() const override {
@@ -3286,7 +3263,7 @@ public:
     }
 };
 
-//fabrica pt vegan
+// vegan menu factory
 class FabricaVegan : public IFabricaMeniu {
 public:
     IFelPrincipal* creazaFelPrincipal() const override {
@@ -3300,28 +3277,27 @@ public:
 };
 
 
-//clientul primeste fabrica prin Dependency Injection
+// client receives factory via dependency injection
 void servesteClient(const IFabricaMeniu& fabricaAlesa) {
     cout<<"--- Incepere servire client ---"<<endl;
     
-    //clientul (ospatarul) lucreaza cu interfețele abstracte
+    // client works with abstract interfaces
     IFelPrincipal* mancare = fabricaAlesa.creazaFelPrincipal();
     IBautura* bautura = fabricaAlesa.creazaBautura();
 
     mancare->pregatesteMancarea();
     bautura->toarnaInPahar();
 
-    //dezalocam
+    // deallocate combo items
     delete mancare;
     delete bautura;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main() {
 
     
-   //INITIALIZARE PRODUSE
+   // initialize products
     (new Produs("Pizza Margherita", 35.0f, 800, 10))->adaugaInMeniu();
     (new Produs("Paste Carbonara", 28.0f, 650, 15))->adaugaInMeniu();
     (new Produs("Salata Caesar", 22.0f, 350, 20))->adaugaInMeniu();
@@ -3329,19 +3305,19 @@ int main() {
     (new Produs("Tiramisu", 20.0f, 450, 8))->adaugaInMeniu();
     (new Produs("Limonada", 12.0f, 120, 25))->adaugaInMeniu();
 
-    //INITIALIZARE MESE
+    // initialize tables
     (new Masa(2, 0, false, "Masa 1 - fereastra"))->adaugaInCatalog();
     (new Masa(4, 2, true,  "Masa 2 - ocupata"))->adaugaInCatalog();
     (new Masa(6, 0, false, "Masa 3 - terasa"))->adaugaInCatalog();
     (new Masa(4, 0, false, "Masa 4 - interior"))->adaugaInCatalog();
 
-     //INITIALIZARE ANGAJATI
-    // Angajat generic
+     // initialize employees
+    // generic employee
     Angajat* a1 = new Angajat("Ion Popescu", 'M', 1234567890123LL, 15, 3, 1990, 3000.0f);
     a1->adaugaInCatalog();
     a1->adaugaInPersonal();
 
-    // Bucatari
+    // chefs
     Bucatar* b1 = new Bucatar("Maria Ionescu", 'F', 2345678901234LL, 10, 5, 1988, 4000.0f, "italiana", 8);
     b1->adaugaInCatalog();
     b1->adaugaInPersonal();
@@ -3350,7 +3326,7 @@ int main() {
     b2->adaugaInCatalog();
     b2->adaugaInPersonal();
 
-    // Ospatari
+    // waiters
     Ospatar* o1 = new Ospatar("Ana Dumitrescu", 'F', 4567890123456LL, 5, 9, 1995, 2800.0f, 1, 2);
     o1->adaugaInCatalog();
     o1->adaugaInPersonal();
@@ -3359,11 +3335,11 @@ int main() {
     o2->adaugaInCatalog();
     o2->adaugaInPersonal();
 
-    // Administrator
+    // administrator
     Administrator* ad1 = new Administrator("Alexandru Galmondo", 'M', 6789012345678LL, 1, 1, 1975, 25000.0f, "Restaurant Galmondo", 12);
     ad1->adaugaInPersonal();
 
-    //INITIALIZARE COMENZI
+    // initialize orders
     Comanda* c1 = new Comanda(1);
     Produs* pizza = Produs::getProdusDinMeniu("Pizza Margherita");
     Produs* paste = Produs::getProdusDinMeniu("Paste Carbonara");
@@ -3382,7 +3358,7 @@ int main() {
 
     Logger::getInstance().log("Sistemul Galmondo a fost pornit.");
 
-    //instantierea claselor template 
+    // instantiate template classes 
     RegistruFeedback<string, 50> pareriText;
     RegistruFeedback<int, 50> noteClienti;
     
@@ -3413,7 +3389,6 @@ int main() {
 
         switch(optiune){
 
-            //////////////////////////////////////////////////
             case 1: {
                 int opt1 = -1;
                 while(opt1 != 0){
@@ -3437,7 +3412,7 @@ int main() {
                         continue; 
                     }
 
-                    //pentru optiunea 1 : pentru meniu (clasa Produs)
+                    // option 1: menu products
                     try{
                         switch(opt1){
                             case 1:
@@ -3497,7 +3472,6 @@ int main() {
                 break;
             }
 
-            ///////////////////////////////////////////////////////////////
             case 2:{
                 int opt2 = -1;
                 while(opt2 != 0){
@@ -3527,7 +3501,7 @@ int main() {
                         continue; 
                     }
 
-                    //pentru optiunea 2: pentru personal ( ierarhie clasa persoana - angajat etc)
+                    // option 2: staff management
                     try{
                         switch(opt2){
                             case 1:
@@ -3609,7 +3583,6 @@ int main() {
                 break;
             }
 
-            ///////////////////////////////////////////////////////////////
             case 3: {
                 int opt3 = -1;
                 while(opt3 != 0){
@@ -3632,15 +3605,8 @@ int main() {
                         continue; 
                     }
 
-                    //pentru optiunea 3: pentru mese ( clasa masa)
-                    /*
-                    Demonstratie stack unwinding:
-                    Daca se introduce un numar de persoane mai mare decat capacitatea mesei,
-                    se va arunca 'CapacitateMasaException'.In acel moment, executia switch-ului
-                    se opreste instant si stiva incepe sa fie curatata.Toate obiectele locale de pe stiva
-                    pana in acel punct isi vor apela automat destructorii 
-                    inainte ca exceptia sa fie prinsa in blocul catch de mai jos
-                    */
+                    // option 3: table management
+                    // stack unwinding: throwing exception cleans stack and calls destructors before catch
                     try{
                         switch(opt3){
                             case 1:
@@ -3689,12 +3655,12 @@ int main() {
                         Logger::getInstance().log("Actiune esuata (Capacitate depasita): " + string(e.what()));
                     }
                     catch (const RestaurantException& e) {
-                        // aici pica id invalid, masa ocupata, lipsa mese libere etc
+                        // handle table exceptions
                         cout<<"[Eroare la Mese]: "<<e.what()<<endl;
                         Logger::getInstance().log("Eroare actiune Masa: " + string(e.what()));
                     }
                     catch (const std::exception& e) {
-                        //prinde erorile de la stoi (daca introducem litere la ID) sau altele
+                        // catch invalid input conversion errors
                         cout<<"[Eroare Input/Sistem]: "<<e.what()<<endl;
                         Logger::getInstance().log("Eroare STL in sub-meniul Mese.");
                     }
@@ -3706,7 +3672,6 @@ int main() {
                 break;
             }
 
-            ////////////////////////////////////////////////////////////
             case 4: {
                 int opt4 = -1;
                 while(opt4 != 0){
@@ -3732,7 +3697,7 @@ int main() {
                         continue; 
                     }
 
-                    //pentru optiunea 4: pentru comenzi ( clasa comanda )
+                    // option 4: orders management
                     try{
                         switch(opt4){
                             case 1:{
@@ -3783,7 +3748,7 @@ int main() {
                                 Comanda* c = Comanda::getComandaDupaId(idCmd);
 
                                 if(c != nullptr){
-                                    if(!(*c)){ //am folosit operatorul "!"
+                                    if(!(*c)){ // check if order is active
                                         cout<<"Comanda este goala."<<endl;
                                     }
                                     else{
@@ -3853,7 +3818,7 @@ int main() {
                         Logger::getInstance().log("Date invalide (Comanda): " + string(e.what()));
                     }
                     catch (const RestaurantException& e) {
-                        //aici pica : "Comanda goala", "Istoric gol", etc
+                        // handle order exceptions
                         cout<<"[Eroare la Comenzi]: "<<e.what()<<endl;
                         Logger::getInstance().log("Eroare actiune Comanda: " + string(e.what()));
                     }
@@ -3869,7 +3834,6 @@ int main() {
                 break;
             } 
 
-            ////////////////////////////////////////////////////
             case 5: {
                 int opt5 = -1;
                 while(opt5 != 0){
@@ -3893,7 +3857,7 @@ int main() {
                         continue; 
                     }
 
-                    //pentru optiunea 5: pt feedback ( clasa registru feedback )
+                    // option 5: customer feedback
                     try {
                         switch(opt5){
                             case 1: {
@@ -3921,20 +3885,20 @@ int main() {
                                 cout<<"Introduceti calificativ (Excelent/Foarte bine/Bine/Slab/Foarte slab): ";
                                 cin>>ws; getline(cin, calificativ);
                                 
-                                //metoda template din interiorul clasei template
+                                // template method inside template class
                                 noteClienti.adaugaFeedbackConvertit<string>(calificativ, conversieTextInStele);
                                 cout<<"Calificativ convertit si inregistrat ca nota!"<<endl;
                                 break;
                             }
                             case 4: {
                                 cout<<"Raport Note"<<endl;
-                                //folosim specializarea pt int
+                                // use template specialization for ratings
                                 genereazaRaport(noteClienti.getIstoric()); 
                                 break;
                             }
                             case 5: {
                                 cout<<"Raport Text"<<endl;
-                                //folosim specializarea pentru string
+                                // use template specialization for reviews
                                 genereazaRaport(pareriText.getIstoric());
                                 break;
                             }
@@ -3950,7 +3914,7 @@ int main() {
                         }
                     }
                     catch (const overflow_error& e) {
-                        //exceptia aruncata cand depasim limita de memorie
+                        // memory limit exception
                         cout<<"[Eroare Limita Memorie]: "<<e.what()<<endl;
                         Logger::getInstance().log("Eroare Feedback: " + string(e.what()));
                     }
@@ -3966,10 +3930,9 @@ int main() {
                 break;
             }
 
-            ////////////////////////////////////////////////////
 
             case 6: {
-                //pentru optiunea 6: pt jurnal  ( clasa Logger -  singleton )
+                // option 6: logger events
                 try {
                     cout<<"JURNAL SISTEM "<<endl;
                     Logger::getInstance().afiseazaJurnal();
@@ -3983,7 +3946,7 @@ int main() {
                 }
                 break;
             }
-            ////////////////////////////////////////////////////
+
 
             case 7:{ 
                 int tipClient = -1;
@@ -4003,9 +3966,9 @@ int main() {
                     continue; 
                 }
 
-                //pentru optiunea 7: pt servire rapida ( vegan/ non vegan) 
+                // option 7: fast service combo 
                 try {
-                    //schimbarea familiei se face prin inlocuirea fabricii trimise ca parametru
+                    // switch combo by swapping factory parameter
                     if(tipClient == 1){
                         FabricaStandard fabricaStd;
                         servesteClient(fabricaStd); 
@@ -4027,7 +3990,7 @@ int main() {
                 }
                 break;
             }
-            ////////////////////////////////////////////////////
+
             case 0:{
                 cout<<"La revedere!"<<endl;
                 break;
@@ -4051,3 +4014,4 @@ int main() {
     
 }
       
+
